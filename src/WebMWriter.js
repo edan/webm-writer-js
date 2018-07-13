@@ -590,21 +590,21 @@
                 var
                     buffer = new ArrayBufferDataStream(8),
                     oldPos = blobBuffer.pos;
-                
+
                 // Rewrite the data payload (don't need to update the id or size)
                 buffer.writeDoubleBE(clusterStartTime);
-                
+
                 // And write that through to the file
                 blobBuffer.seek(segmentDuration.dataOffset);
                 blobBuffer.write(buffer.getAsDataArray());
-        
+
                 blobBuffer.seek(oldPos);
             }
-            
+
             /**
              * Add a frame to the video. Currently the frame must be a Canvas element.
              */
-            this.addFrame = function(canvas) {
+            this.addFrame = function(canvas, duration) {
                 if (writtenHeader) {
                     if (canvas.width != videoWidth || canvas.height != videoHeight) {
                         throw "Frame size differs from previous frames";
@@ -612,24 +612,24 @@
                 } else {
                     videoWidth = canvas.width;
                     videoHeight = canvas.height;
-    
+
                     writeHeader();
                     writtenHeader = true;
                 }
-    
+
                 var
                     webP = renderAsWebP(canvas, {quality: options.quality});
-                
+
                 if (!webP) {
                     throw "Couldn't decode WebP frame, does the browser support WebP?";
                 }
-                
+
                 addFrameToCluster({
                     frame: extractKeyframeFromWebP(webP),
-                    duration: options.frameDuration
+                    duration: duration !== undefined ? duration : options.frameDuration
                 });
             };
-            
+
             /**
              * Finish writing the video and return a Promise to signal completion.
              *
